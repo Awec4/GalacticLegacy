@@ -47,6 +47,8 @@ extern vmCvar_t	ui_char_color_red;
 extern vmCvar_t	ui_char_color_green;
 extern vmCvar_t	ui_char_color_blue;
 
+bool initialLoad = true;
+
 void *UI_Alloc( int size );
 
 void		Controls_GetConfig( void );
@@ -93,9 +95,9 @@ static void *captureData = NULL;
 
 //const char defaultString[10] = {"default"};
 #ifdef CGAME
-#define MEM_POOL_SIZE  (128 * 1024)
+#define MEM_POOL_SIZE  (256 * 1024)
 #else
-#define MEM_POOL_SIZE  (4 * 1024 * 1024)
+#define MEM_POOL_SIZE  (8 * 1024 * 1024)
 #endif
 
 #define SCROLL_TIME_START				500
@@ -176,6 +178,7 @@ const char *types [] = {
 "ITEM_TYPE_MULTI",
 "ITEM_TYPE_BIND",
 "ITEM_TYPE_TEXTSCROLL",
+"ITEM_TYPE_SLIDER_INTEGER",
 NULL
 };
 
@@ -1772,6 +1775,45 @@ void Menu_SetItemBackground(const menuDef_t *menu,const char *itemName, const ch
 	}
 }
 
+// Change the exec command for a button.
+void Menu_SetItemExec(const menuDef_t *menu, const char *itemName, const char *text)
+{
+	try
+	{
+
+		itemDef_t	*item;
+		int			j, count;
+
+		if (!menu)	// No menu???
+		{
+			return;
+		}
+
+		count = Menu_ItemsMatchingGroup((menuDef_t *)menu, itemName);
+
+		for (j = 0; j < count; j++)
+		{
+			item = Menu_GetMatchingItemByNumber((menuDef_t *)menu, j, itemName);
+			if (item != NULL)
+			{
+				if (((text[0] == 'n') && (text[1] == 'p') && (text[2] == 'c')))
+				{
+					item->exec = (char*)text;
+					return;
+				}
+
+			}
+		}
+	}
+	catch (...)
+	{
+
+	}
+	return;
+
+	
+}
+
 // Set all the items within a given menu, with the given itemName, to the given text
 void Menu_SetItemText(const menuDef_t *menu,const char *itemName, const char *text)
 {
@@ -2069,6 +2111,32 @@ qboolean Script_SetItemText(itemDef_t *item, const char **args)
 	if (String_Parse(args, &itemName) && String_Parse(args, &text))
 	{
 		Menu_SetItemText((menuDef_t *) item->parent, itemName, text);
+	}
+	return qtrue;
+}
+/*
+=================
+Script_SetItemExec
+=================
+*/
+qboolean Script_SetItemExec(itemDef_t *item, const char **args)
+{
+	try
+	{
+		// expecting text
+		const char *itemName;
+		const char *text;
+
+		// expecting text
+		if (String_Parse(args, &itemName) && String_Parse(args, &text))
+		{
+			Menu_SetItemExec((menuDef_t *)item->parent, itemName, text);
+		}
+	}
+
+	catch (...)
+	{
+
 	}
 	return qtrue;
 }
@@ -2842,11 +2910,76 @@ Script_Exec
 qboolean Script_Exec ( itemDef_t *item, const char **args)
 {
 	const char *val;
-	if (String_Parse(args, &val))
+	try
 	{
-		DC->executeText(EXEC_APPEND, va("%s ; ", val));
-	}
+		if (initialLoad)
+		{
+			int music_pick = rand() % 12;
+			switch (music_pick)
+			{
+			case 0:
+				item->exec = "music music/sp/menu.mp3";
+				break;
+			case 1:
+				item->exec = "music music/sp/menu1.mp3";
+				break;
+			case 2:
+				item->exec = "music music/order66/battle.mp3";
+				break;
+			case 3:
+				item->exec = "music music/sp/menu2.mp3";
+				break;
+			case 4:
+				item->exec = "music music/sp/menu3.mp3";
+				break;
+			case 5:
+				item->exec = "music music/sp/menu4.mp3";
+				break;
+			case 6:
+				item->exec = "music music/sp/menu5.mp3";
+				break;
+			case 7:
+				item->exec = "music music/sp/menu6.mp3";
+				break;
+			case 8:
+				item->exec = "music music/sp/menu7.mp3";
+				break;
+			case 9:
+				item->exec = "music music/sp/menu8.mp3";
+				break;
+			case 10:
+				item->exec = "music music/sp/menu9.mp3";
+				break;
+			case 11:
+				item->exec = "music music/sp/menu10.mp3";
+				break;
+			}
+			initialLoad = false;				
+		}
 
+		
+
+		if (item->exec != NULL)
+		{
+			// Little shortcut for the npc buttons, otherwise perform as normal.
+			if (item->exec[0] == 'n' && item->exec[1] == 'p' && item->exec[2] == 'c')
+			{
+				DC->executeText(EXEC_APPEND, va("%s ; bind h %s", item->exec, item->exec));
+			}
+			else
+			{
+				DC->executeText(EXEC_APPEND, va("%s; ", item->exec));
+			}
+		}
+		else if (String_Parse(args, &val))
+		{
+			DC->executeText(EXEC_APPEND, va("%s; ", val));
+		}
+	}
+	catch (...)
+	{
+
+	}
 	return qtrue;
 }
 
@@ -2967,6 +3100,7 @@ commandDef_t commandList[] =
   {"setitembackground", &Script_SetItemBackground},	// group/name
   {"setitemtext",	&Script_SetItemText},			// group/name
   {"setitemrect",	&Script_SetItemRect},			// group/name
+  {"setitemexec",	&Script_SetItemExec},			// group/name
   {"defer",			&Script_Defer},					//
   {"rundeferred",	&Script_RunDeferred},			//
   {"delay",			&Script_Delay},					// works on this (script)
@@ -4340,6 +4474,22 @@ qboolean ItemParse_action( itemDef_t *item)
 	return qtrue;
 }
 
+qboolean ItemParse_exec(itemDef_t *item)
+{
+	try
+	{
+		if (!PC_Script_Parse(&item->exec))
+		{
+			return qfalse;
+		}
+	}
+	catch (...)
+	{
+		return qfalse;
+	}
+	return qtrue;
+}
+
 
 /*
 ===============
@@ -4393,6 +4543,7 @@ qboolean ItemParse_cvar( itemDef_t *item)
 			case ITEM_TYPE_YESNO:
 			case ITEM_TYPE_BIND:
 			case ITEM_TYPE_SLIDER:
+			case ITEM_TYPE_SLIDER_INTEGER:
 			case ITEM_TYPE_TEXT:
 			case ITEM_TYPE_TEXTSCROLL:
 				editPtr = (editFieldDef_t*)item->typeData;
@@ -4793,7 +4944,7 @@ void Item_ValidateTypeData(itemDef_t *item)
 		item->typeData = UI_Alloc(sizeof(listBoxDef_t));
 		memset(item->typeData, 0, sizeof(listBoxDef_t));
 	}
-	else if (item->type == ITEM_TYPE_EDITFIELD || item->type == ITEM_TYPE_NUMERICFIELD || item->type == ITEM_TYPE_YESNO || item->type == ITEM_TYPE_BIND || item->type == ITEM_TYPE_SLIDER || item->type == ITEM_TYPE_TEXT)
+	else if (item->type == ITEM_TYPE_EDITFIELD || item->type == ITEM_TYPE_NUMERICFIELD || item->type == ITEM_TYPE_YESNO || item->type == ITEM_TYPE_BIND || item->type == ITEM_TYPE_SLIDER || item->type == ITEM_TYPE_SLIDER_INTEGER || item->type == ITEM_TYPE_TEXT)
 	{
 		item->typeData = UI_Alloc(sizeof(editFieldDef_t));
 		memset(item->typeData, 0, sizeof(editFieldDef_t));
@@ -4925,6 +5076,7 @@ keywordHash_t itemParseKeywords[] = {
 	{"elementtype",		ItemParse_elementtype,		},
 	{"elementwidth",	ItemParse_elementwidth,		},
 	{"enableCvar",		ItemParse_enableCvar,		},
+	{"exec",			ItemParse_exec,				},
 	{"feeder",			ItemParse_feeder,			},
 	{"flag",			ItemParse_flag,				},
 	{"focusSound",		ItemParse_focusSound,		},
@@ -8363,6 +8515,7 @@ static qboolean Item_Paint(itemDef_t *item, qboolean bDraw)
 			Item_Bind_Paint(item);
 			break;
 		case ITEM_TYPE_SLIDER:
+		case ITEM_TYPE_SLIDER_INTEGER:
 			Item_Slider_Paint(item);
 			break;
 		default:
@@ -10603,6 +10756,45 @@ int Item_Slider_OverSlider(itemDef_t *item, float x, float y)
 }
 
 /*
+ =================
+ Scroll_Slider_Integer_ThumbFunc
+ =================
+ */
+static void Scroll_Slider_Integer_ThumbFunc(void *p)
+{
+	float x, value, cursorx;
+	int intValue;
+	scrollInfo_t *si = (scrollInfo_t*)p;
+	editFieldDef_t *editDef = (struct editFieldDef_s *) si->item->typeData;
+	
+	if (si->item->text)
+	{
+		x = si->item->textRect.x + si->item->textRect.w + 8;
+	}
+	else
+	{
+		x = si->item->window.rect.x;
+	}
+	
+	cursorx = DC->cursorx;
+	
+	if (cursorx < x)
+	{
+		cursorx = x;
+	}
+	else if (cursorx > x + SLIDER_WIDTH)
+	{
+		cursorx = x + SLIDER_WIDTH;
+	}
+	value = cursorx - x;
+	value /= SLIDER_WIDTH;
+	value *= (editDef->maxVal - editDef->minVal);
+	value += editDef->minVal;
+	intValue = (int) value;
+	DC->setCVar(si->item->cvar, va("%d", intValue));
+}
+
+/*
 =================
 Scroll_Slider_ThumbFunc
 =================
@@ -10716,6 +10908,21 @@ void Item_StartCapture(itemDef_t *item, int key)
 				scrollInfo.yStart = DC->cursory;
 				captureData = &scrollInfo;
 				captureFunc = &Scroll_Slider_ThumbFunc;
+				itemCapture = item;
+			}
+			break;
+		}
+		case ITEM_TYPE_SLIDER_INTEGER:
+		{
+			flags = Item_Slider_OverSlider(item, DC->cursorx, DC->cursory);
+			if (flags & WINDOW_LB_THUMB)
+			{
+				scrollInfo.scrollKey = key;
+				scrollInfo.item = item;
+				scrollInfo.xStart = DC->cursorx;
+				scrollInfo.yStart = DC->cursory;
+				captureData = &scrollInfo;
+				captureFunc = &Scroll_Slider_Integer_ThumbFunc;
 				itemCapture = item;
 			}
 			break;
@@ -11003,6 +11210,64 @@ qboolean Item_Slider_HandleKey(itemDef_t *item, int key, qboolean down)
 }
 
 /*
+ =================
+ Item_Slider_HandleKey
+ =================
+ */
+qboolean Item_Slider_Integer_HandleKey(itemDef_t *item, int key, qboolean down)
+{
+	//DC->Print("slider handle key\n");
+	//JLF MPMOVED
+	
+	float x, value, width, work;
+	
+	if (item->window.flags & WINDOW_HASFOCUS && item->cvar && Rect_ContainsPoint(&item->window.rect, DC->cursorx, DC->cursory))
+	{
+		
+		if (key == A_MOUSE1 || key == A_ENTER || key == A_MOUSE2 || key == A_MOUSE3)
+		{
+			editFieldDef_t *editDef = (editFieldDef_s *) item->typeData;
+			if (editDef)
+			{
+				rectDef_t testRect;
+				width = SLIDER_WIDTH;
+				if (item->text)
+				{
+					x = item->textRect.x + item->textRect.w + 8;
+				}
+				else
+				{
+					x = item->window.rect.x;
+				}
+				
+				testRect = item->window.rect;
+				testRect.x = x;
+				value = (float)SLIDER_THUMB_WIDTH / 2;
+				testRect.x -= value;
+				//DC->Print("slider x: %f\n", testRect.x);
+				testRect.w = (SLIDER_WIDTH + (float)SLIDER_THUMB_WIDTH / 2);
+				//DC->Print("slider w: %f\n", testRect.w);
+				if (Rect_ContainsPoint(&testRect, DC->cursorx, DC->cursory))
+				{
+					work = DC->cursorx - x;
+					value = work / width;
+					value *= (editDef->maxVal - editDef->minVal);
+					// vm fuckage
+					// value = (((float)(DC->cursorx - x)/ SLIDER_WIDTH) * (editDef->maxVal - editDef->minVal));
+					value += editDef->minVal;
+					int intValue = (int) value;
+					DC->setCVar(item->cvar, va("%d", intValue));
+					return qtrue;
+				}
+			}
+		}
+	}
+	
+	//DC->Print("slider handle key exit\n");
+	return qfalse;
+}
+
+/*
 =================
 Item_HandleKey
 =================
@@ -11069,6 +11334,9 @@ qboolean Item_HandleKey(itemDef_t *item, int key, qboolean down)
 			break;
 		case ITEM_TYPE_SLIDER:
 			return Item_Slider_HandleKey(item, key, down);
+			break;
+		case ITEM_TYPE_SLIDER_INTEGER:
+			return Item_Slider_Integer_HandleKey(item, key, down);
 			break;
 //JLF MPMOVED
 		case ITEM_TYPE_TEXT:
@@ -11363,7 +11631,7 @@ void Menu_HandleKey(menuDef_t *menu, int key, qboolean down)
 	should just process the action and not support the accept functionality.
 */
 //JLFACCEPT
-				else if ( item->type == ITEM_TYPE_MULTI || item->type == ITEM_TYPE_YESNO || item->type == ITEM_TYPE_SLIDER)
+				else if ( item->type == ITEM_TYPE_MULTI || item->type == ITEM_TYPE_YESNO || item->type == ITEM_TYPE_SLIDER || item->type == ITEM_TYPE_SLIDER_INTEGER )
 				{
 
 					if (Item_HandleAccept(item))

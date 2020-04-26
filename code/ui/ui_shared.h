@@ -45,7 +45,7 @@ enum {
 #define TT_PUNCTUATION				5			// punctuation
 #endif
 
-#define SLIDER_WIDTH 128.0
+#define SLIDER_WIDTH 96.0
 #define SLIDER_HEIGHT 16.0
 #define SLIDER_THUMB_WIDTH 12.0
 #define SLIDER_THUMB_HEIGHT 16.0
@@ -96,7 +96,7 @@ typedef struct editFieldDef_s {
 	int			paintOffset;				//
 } editFieldDef_t;
 
-#define MAX_MULTI_CVARS 64//32
+#define MAX_MULTI_CVARS 128//32
 
 typedef struct multiDef_s {
 	const char *cvarList[MAX_MULTI_CVARS];
@@ -112,7 +112,7 @@ typedef struct multiDef_s {
 #define CVAR_HIDE		0x00000008
 #define CVAR_SUBSTRING	0x00000010	//when using enable or disable, just check for strstr instead of ==
 
-#define STRING_POOL_SIZE (2*1024*1024)
+#define STRING_POOL_SIZE (4*1024*1024)
 
 #define	NUM_CROSSHAIRS			9
 
@@ -253,7 +253,7 @@ void UI_InitMemory( void );
 
 
 #define MAX_COLOR_RANGES	10
-#define MAX_MENUITEMS		150
+#define MAX_MENUITEMS		1600
 #define MAX_MENUS			64
 
 
@@ -380,6 +380,7 @@ typedef struct itemDef_s {
 	const char	*mouseEnter;				// mouse enter script
 	const char	*mouseExit;					// mouse exit script
 	const char	*action;					// select script
+	const char	*exec;						// Exec command
 //JLFACCEPT MPMOVED
 	const char  *accept;
 //JLFDPADSCRIPT MPMOVED
