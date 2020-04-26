@@ -1,3 +1,15 @@
+# SWGL
+
+Galactic Legacy is a modification for Jedi Academy built on the OpenJK framework by the JACoders group. It aims to add sandbox features to both SP and MP as well as adding new features and rebalancing gameplay.
+
+<a href="https://discord.gg/hUGpGgR"><img src="https://img.shields.io/badge/discord-join-7289DA.svg?logo=discord&longCache=true&style=flat" /></a>
+
+## Significant Contributors
+
+* Linken
+* The New Order
+* Awec
+
 # OpenJK
 
 OpenJK is an effort by the JACoders group to maintain and improve the game engines on which the Jedi Academy (JA) and Jedi Outcast (JO) games run on, while maintaining *full backwards compatibility* with the existing games. *This project does not attempt to rebalance or otherwise modify core gameplay*.
