@@ -237,7 +237,30 @@ void RE_SetLightStyle(int style, int color);
 
 void R_Splash()
 {
-	image_t *pImage = R_FindImageFile( "menu/splash", qfalse, qfalse, qfalse, GL_CLAMP);
+
+	image_t *pImage;
+	int splashPick = rand() % 5;
+	switch (splashPick)
+	{
+	case 0:
+		pImage = R_FindImageFile("menu/splash", qfalse, qfalse, qfalse, GL_CLAMP);
+		break;
+	case 1:
+		pImage = R_FindImageFile("menu/splash2", qfalse, qfalse, qfalse, GL_CLAMP);
+		break;
+	case 2:
+		pImage = R_FindImageFile("menu/splash3", qfalse, qfalse, qfalse, GL_CLAMP);
+		break;
+	case 3:
+		pImage = R_FindImageFile("menu/splash4", qfalse, qfalse, qfalse, GL_CLAMP);
+		break;
+	case 4:
+		pImage = R_FindImageFile("menu/splash5", qfalse, qfalse, qfalse, GL_CLAMP);
+		break;
+	default:
+		pImage = R_FindImageFile("menu/splash", qfalse, qfalse, qfalse, GL_CLAMP);
+		break;
+	}
 
 	if ( !pImage )
 	{
