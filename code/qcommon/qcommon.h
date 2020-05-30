@@ -617,6 +617,7 @@ extern	cvar_t	*com_sv_running;
 extern	cvar_t	*com_cl_running;
 extern	cvar_t	*com_version;
 extern	cvar_t	*com_homepath;
+extern	cvar_t	*g_validJKO;
 #ifndef _WIN32
 extern	cvar_t	*com_ansiColor;
 #endif

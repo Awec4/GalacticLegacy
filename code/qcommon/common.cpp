@@ -61,6 +61,8 @@ cvar_t	*sv_paused;
 cvar_t	*com_skippingcin;
 cvar_t	*com_speedslog;		// 1 = buffer log, 2 = flush after each print
 cvar_t  *com_homepath;
+cvar_t	*g_validJKO;
+
 #ifndef _WIN32
 cvar_t	*com_ansiColor = NULL;
 #endif
@@ -1098,6 +1100,8 @@ void Com_Init( char *commandLine ) {
 		com_developer = Cvar_Get ("developer", "0", CVAR_TEMP );
 		com_logfile = Cvar_Get ("logfile", "0", CVAR_TEMP );
 		com_speedslog = Cvar_Get ("speedslog", "0", CVAR_TEMP );
+
+		g_validJKO = Cvar_Get("g_validJKO", "0", CVAR_ARCHIVE_ND|CVAR_NORESTART);
 
 		com_timescale = Cvar_Get ("timescale", "1", CVAR_CHEAT );
 		com_fixedtime = Cvar_Get ("fixedtime", "0", CVAR_CHEAT);

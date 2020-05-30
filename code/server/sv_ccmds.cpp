@@ -30,7 +30,6 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 #include "../win32/AutoVersion.h"
 
-
 /*
 ===============================================================================
 
@@ -49,6 +48,12 @@ static bool SV_Map_( ForceReload_e eForceReload )
 {
 	char		*map = NULL;
 	char		expanded[MAX_QPATH] = {0};
+
+	char* jk2maps[] = { "kejim_post", "kejim_base", "artus_mine", "artus_detention", "artus_topside",
+		"valley", "yavin_temple", "yavin_trial", "ns_streets", "ns_hideout", "ns_starpad",
+		"bespin_undercity", "bespin_streets", "bespin_platform", "cairn_bay", "cairn_assembly",
+		"cairn_reactor", "cairn_dock1", "doom_comm", "doom_detention", "doom_shields", "yavin_swamp",
+		"yavin_canyon", "yavin_courtyard", "yavin_final" };
 
 	map = Cmd_Argv(1);
 	if ( !*map ) {
@@ -74,6 +79,21 @@ static bool SV_Map_( ForceReload_e eForceReload )
 		}
 		return false;
 	}
+
+	if (!g_validJKO->integer)
+	{
+		for (int i = 0; i < (sizeof(jk2maps)/sizeof(jk2maps[0])); i++)
+		{
+			if (strcmp(map, jk2maps[i]) == 0)
+			{
+				Com_Printf("Can't find map %s\n", expanded);
+				return false;
+			}
+		}
+			
+	}
+		
+	
 
 	if (map[0]!='_')
 	{
